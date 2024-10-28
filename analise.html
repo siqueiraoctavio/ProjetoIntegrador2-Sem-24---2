@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0/dist/chart.min.js"></script>
+    <style>
+        /* Estilos para o corpo da página */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        /* Estilos para o cabeçalho */
+        header {
+            background-color: #1c1f7f;
+            color: #ffffff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        /* Botões e estilos gerais */
+        .btn {
+            background-color: #026bb5;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label, input[type=text], input[type=submit] {
+            display: block;
+            margin: 10px auto;
+            font-size: 16px;
+            color: #333;
+        }
+
+        input[type=text] {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 5px;
+            border: 1px solid #cccccc;
+            background-color: #fafafa;
+            color: #333;
+        }
+
+        input[type=submit] {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type=submit]:hover {
+            background-color: #0056b3;
+        }
+
+        .mensagem {
+            color: red; /* Cor da mensagem */
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Análise de Dados</h1>
+    </header>
+
+    <div class="container">
+        <h2>Consultar Dados por CNPJ</h2>
+        <form action="/analise_dados" method="POST">
+            <label for="cnpj">Digite o CNPJ:</label>
+            <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" oninput="this.value = aplicarMascaraCNPJ(this.value)" required>
+            <input type="submit" value="Analisar Dados">
+        </form>
+
+        {% if not numero_os and not valores %}
+            <div class="mensagem">Nenhum dado encontrado para o CNPJ fornecido.</div>
+        {% endif %}
+
+        <!-- Se houver dados, renderizar o gráfico -->
+        {% if numero_os and valores %}
+            <div id="grafico">
+                <canvas id="meuGrafico"></canvas>
+            </div>
+            <script>
+                const numeroOs = {{ numero_os | tojson | safe }};
+                const valores = {{ valores | tojson | safe }};
+                const cnpjInformado = "{{ cnpj }}"; // Captura o CNPJ informado
+
+
+                console.log('Números OS:', numeroOs);
+                console.log('Valores:', valores);
+
+                const ctx = document.getElementById('meuGrafico').getContext('2d');
+                const meuGrafico = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: numeroOs,
+                        datasets: [{
+                            label: 'Valores',
+                            data: valores,
+                            backgroundColor: 'rgba(75, 192, 192, 1)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Valores das obras CNPJ: ${cnpjInformado}`, // Título do gráfico
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'OS' // Título do eixo X
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Valores em R$' // Título do eixo Y
+                    }
+                }
+            }
+        }
+    });
+
+
+
+            </script>
+        {% endif %}
+    </div>
+
+    <script>
+        function aplicarMascaraCNPJ(cnpj) {
+            cnpj = cnpj.replace(/\D/g, "");
+
+            if (cnpj.length <= 2) {
+                return cnpj;
+            } else if (cnpj.length <= 5) {
+                return cnpj.replace(/^(\d{2})(\d)/, "$1.$2");
+            } else if (cnpj.length <= 8) {
+                return cnpj.replace(/^(\d{2})(\d{3})(\d)/, "$1.$2.$3");
+            } else if (cnpj.length <= 12) {
+                return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d)/, "$1.$2.$3/$4");
+            } else {
+                return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d)/, "$1.$2.$3/$4-$5");
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+

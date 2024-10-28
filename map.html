@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Localizações</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* Estilos para o corpo da página */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            height: 100vh; /* Altura total da janela */
+            overflow: hidden; /* Remove a barra de rolagem */
+        }
+
+        /* Estilos para o cabeçalho */
+        header {
+            background-color: #1c1f7f;
+            color: #ffffff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 100%; /* Ocupar toda a largura */
+            margin: 0; /* Sem margem */
+            padding: 0; /* Sem padding */
+            height: 100%; /* Ocupar toda a altura */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Estilo para o mapa */
+        #map {
+            flex: 1; /* Ocupar todo o espaço disponível */
+            width: 100%; /* Largura total */
+            height: 80vh; /* Altura do mapa reduzida */
+            margin: 0; /* Sem margem */
+        }
+
+        /* Estilo para o título */
+        h1 {
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="width: 100px; height: auto;">
+    </header>
+
+    <div class="container">
+        <h1>Localização do Cliente e Obras</h1>
+
+        {% if mensagem_api %}
+            <p style="color: red;">{{ mensagem_api }}</p>
+        {% endif %}
+
+        <!-- Mensagem para obras com falha na API -->
+        {% if obras_nao_carregadas %}
+            <div style="color: red; margin-top: 10px;">
+                <h3>Obras que não carregaram:</h3>
+                <ul>
+                    {% for os in obras_nao_carregadas %}
+                        <li>Endereço da obra OS: {{ os }} não carregou pela API, favor tente mais tarde.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Inicializa o mapa com a localização do cliente se disponível
+        {% if cliente %}
+            var map = L.map('map').setView([{{ cliente.latitude }}, {{ cliente.longitude }}], 13);
+
+            // Adiciona uma camada de tiles do OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // Adiciona marcador para o cliente
+            L.marker([{{ cliente.latitude }}, {{ cliente.longitude }}]).addTo(map)
+                .bindPopup('<b>Cliente:</b> {{ cliente.endereco }}')
+                .openPopup();
+
+            // Adiciona marcadores para as obras
+            {% for obra in obras %}
+                {% if obra.latitude and obra.longitude %}
+                    L.marker([{{ obra.latitude }}, {{ obra.longitude }}]).addTo(map)
+                        .bindPopup('<b>Obra:</b> {{ obra.endereco }}<br><b>OS:</b> {{ obra.os }}');
+                {% else %}
+                    console.log('Coordenadas não encontradas para a obra: {{ obra.endereco }}');
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </script>
+</body>
+</html>
+
+
+
