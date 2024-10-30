@@ -16,6 +16,11 @@ db = SQLAlchemy(app)
 def home():
     return render_template("home.html")
 
+@app.route('/criar_tabelas')
+def criar_tabelas():
+    db.create_all()
+    return "Tabelas criadas com sucesso!"
+
 # Definição dos modelos do banco de dados
 class Cliente(db.Model):
     __tablename__ = 'clientes'
