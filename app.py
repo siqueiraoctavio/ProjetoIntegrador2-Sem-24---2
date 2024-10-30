@@ -281,11 +281,23 @@ def verificar_cnpj():
 # Função auxiliar para obter coordenadas
 
 
+# Função para obter coordenadas usando LocationIQ
 def obter_coordenadas(endereco):
-    # Faz a requisição à API Nominatim
+    api_key = os.getenv('LOCATIONIQ_API_KEY')
+    if not api_key:
+        print("API Key LocationIQ não encontrada.")
+        return None, None, False
+
+    # Configura a URL e os parâmetros para a LocationIQ
     response = requests.get(
-        'https://nominatim.openstreetmap.org/search',
-        params={'q': endereco, 'format': 'json', 'countrycodes': 'BR', 'bounded': 1}
+        'https://us1.locationiq.com/v1/search.php',
+        params={
+            'key': api_key,
+            'q': endereco,
+            'format': 'json',
+            'addressdetails': 1,
+            'countrycodes': 'BR'
+        }
     )
 
     # Verifica o código de status da resposta
